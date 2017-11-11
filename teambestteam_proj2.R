@@ -51,6 +51,7 @@ d1[sapply(d1, function(x) all(is.na(x)))] <- NULL
 colSums(is.na(d1))
 
 #' #### Remove Col if 80% of Rows are NA
+# Works for only Numerical
 d1 <- d1[,colSums(is.na(d1)) < (nrow(d1)*0.80)]
 #+ eval = FALSE, echo = TRUE
 colSums(is.na(d1))
@@ -60,10 +61,17 @@ d1 <- d1[complete.cases(d1), ]
 #+ eval = FALSE, echo = TRUE
 colSums(is.na(d1))
 d1_top20 <- d1[1:20,]
-
+d1_rand10 <- d1[sample(nrow(d1),10),]
 #' #### Clean up Environment
 rm(data_all)
 
+#' Target Variables -->
+# DepDelay (Includes Negatives)
+# DepDelayMinutes (Same as DepDelay but negs are 0)
+# DepDel15 --> Flag if DepDelay >15
+# DepartureDelayGroups --> Bins DepDelay (-2:12)
 
-
-
+#'Questions -->
+# We could focus on DepDep15 --> and use Logistic Regression too see what variables are most important...or predict whether or not a flight will be delayed
+# Does Distance affect delay?
+# Is there a difference in Delays by Airport? Is it signif?
