@@ -22,3 +22,5 @@ for(Year in 2015:2017) {
     }
   }
 }
+
+write.csv(complete_data, file = "DMV_On_Time_Performance_2015-2017.csv")
