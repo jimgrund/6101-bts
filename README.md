@@ -5,7 +5,7 @@ Bureau of Transportation Statistics
 #' Target Variables -->
 # DepDelay (Includes Negatives)
 # DepDelayMinutes (Same as DepDelay but negs are 0)
-# DepDel15 --> Flag if DepDelay >15
+# DepDel15 --> Flag if DepDelay >= 15
 # DepartureDelayGroups --> Bins DepDelay (-2:12)
 
 #'Questions -->
