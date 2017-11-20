@@ -41,7 +41,8 @@ suppressPackageStartupMessages(library(ROCR))
 suppressPackageStartupMessages(library(rpart))
 #install.packages("dplyr")
 #suppressPackageStartupMessages(library(dplyr))
-
+#install.packages("Amelia")
+suppressPackageStartupMessages(library(Amelia))
 
 #' ###  Data Load
 # Load the dataset from the working directory
@@ -49,8 +50,8 @@ data_all <- data.frame(read.csv("DMV_On_Time_Performance_2015-2017.csv", header 
 
 #' ## Preprocess Data
 #' ### Global Filter Data
-#d1 <- subset(data_all, Year == "2015" | Year =="2016")
-d1 <- subset(data_all, Year == "2015" | Year =="2016" | Year == "2017")
+d1 <- subset(data_all, Year =="2016")
+#d1 <- subset(data_all, Year == "2015" | Year =="2016" | Year == "2017")
 
 #' ### Missing Values Clean-up
 #' 
@@ -90,25 +91,36 @@ d1 <- d1[complete.cases(d1), ]
 #+ eval = FALSE, echo = TRUE
 colSums(is.na(d1))
 
-#' Convert Variables to Factor
-#+ eval = FALSE, echo = TRUE
-str(d1)
-#d1$DepDel15 <- factor(d1$DepDel15)
-#levels(d1$DepDel15)
+#' #### Visulize Missing Data 
+#missmap(d1, main = "Missing vs Completed Values")
+#^^ Takes too long to run on my comp
 
-
-#' Top n
+#' ### Top n
 #d1_top20 <- d1[1:20,]
 d1_rand10 <- d1[sample(nrow(d1),10),]
-                
+
 #' #### Clean up Environment
 rm(data_all)
 ########################################
-#' ## Partition Data
-subsamples <- createDataPartition(y=d1$DepDel15, p=0.7, list=FALSE)
-TrainSet <- d1[subsamples, ] 
-TestSet <- d1[-subsamples, ]
+#' ## Create Model DataFrame
+d2 <- subset(d1,select = c(DepDel15,Year,Quarter,Month,DayofMonth,DayOfWeek,AirlineID,OriginAirportID,DestAirportID))
+d2_rand10 <- d2[sample(nrow(d2),10),]
 
+#' ### Convert Variables to Factor
+#+ eval = FALSE, echo = TRUE
+str(d2)
+#d2$DepDel15 <- factor(d2$DepDel15)
+#levels(d2$DepDel15)
+#cols <- c("AirlineID","OriginAirportID","DestAirportID")
+#cols <- c("Year","Quarter","Month","DayofMonth","DayOfWeek","AirlineID","OriginAirportID","DestAirportID")
+#d2[cols] <- lapply(d2[cols], factor)
+#+ eval = FALSE, echo = TRUE
+sapply(d2,class)
+
+#' ## Partition Data
+subsamples <- createDataPartition(y=d2$DepDel15, p=0.7, list=FALSE)
+TrainSet <- d2[subsamples, ] 
+TestSet <- d2[-subsamples, ]
 rm(subsamples)
 ########################################
 #' ## Model 1 (Decision Tree)
@@ -126,12 +138,18 @@ rm(subsamples)
 
 ########################################
 #' ## Model 2 (Logistic Regression)
-m2 <- glm(DepDel15 ~ (Year)+(Quarter)+(Month)+(DayofMonth)+DayOfWeek+AirlineID+OriginAirportID+DestAirportID,data=TrainSet) 
+
+#xtabs(~DepDel15 + AirlineID, data = d1)
+
+#' MODEL
+#m2 <- glm(DepDel15 ~ AirlineID+OriginAirportID+DestAirportID,data=TrainSet) 
+m2 <- glm(DepDel15 ~ (Year)+(Quarter)+(Month)+(DayofMonth)+DayOfWeek+AirlineID+OriginAirportID+DestAirportID,data=TrainSet, family=binomial(link = "logit")) 
+#m2 <- glm(DepDel15 ~.,data = TrainSet, family=binomial(link = "logit"))
 #m2 <- glm(DepDel15 ~ factor(Year)+factor(Quarter)+factor(Month)+factor(DayofMonth)+factor(DayOfWeek)+factor(AirlineID)+factor(OriginAirportID)+factor(DestAirportID),data=TrainSet) 
 summary(m2)
 
 #' ### Using anova() for feature importance
-anova(m2, test="Chisq")
+#anova(m2, test="Chisq")
 
 #' ### Prediction
 p2 <- predict(m2, newdata = TestSet,type = 'response')
@@ -141,16 +159,20 @@ p2 <- ifelse(p2 > 0.5,1,0)
 confusionMatrix(data=p2, reference = TestSet$DepDel15)
 
 #' ### ROC and AUC
+response_predict <- predict(m2, newdata=TestSet, type = "response")
+link_predict <- predict(m2, newdata=TestSet, type = "link")
+qplot(x=response_predict, geom="histogram")
 #predictions <- predict(m2, newdata=TestSet, type="response")
-ROCRpred <- prediction(p2, TestSet$DepDel15)
+ROCRpred <- prediction(response_predict, TestSet$DepDel15)
 ROCRperf <- performance(ROCRpred, measure = "tpr", x.measure = "fpr")
 
-#plot(ROCRperf, colorize = TRUE, text.adj = c(-0.2,1.7), print.cutoffs.at = seq(0,1,0.1))
+plot(ROCRperf, colorize = TRUE, text.adj = c(-0.2,1.7)) #print.cutoffs.at = seq(0,1,0.1))
 #plot(ROCRperf, text.adj = c(-0.2,1.7), print.cutoffs.at = seq(0,1,0.1))
 ########################################
 
 #https://analyticsdefined.com/implementing-logistic-regression-using-titanic-dataset-r/
-
+#https://stats.idre.ucla.edu/r/dae/logit-regression/
+#https://www.r-bloggers.com/how-to-perform-a-logistic-regression-in-r/
 
 #' Target Variables -->
 # DepDelay (Includes Negatives)
