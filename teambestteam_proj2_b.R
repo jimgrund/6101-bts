@@ -53,7 +53,7 @@ library(party)
 
 ########################################
 d2 <- data.frame(read.csv("OriginAirport_data.csv", header = TRUE))
-
+d2 <- subset(d2,DepartureDelayGroups >= 0)
 ########################################
 #' ## Create Model DataFrame
 #!! d2 <- subset(d1,select = c(DepartureDelayGroups,DepDelay,Year,Quarter,Month,DayofMonth,DayOfWeek,AirlineID,OriginAirportID,Origin,DestAirportID,Dest))
@@ -138,14 +138,17 @@ png(file = "model3.png")
 m3 <- ctree(DepartureDelayGroups ~ AirlineID+OriginAirportID+DestAirportID, data = TrainSet)
 plot(m3, main = "Conditional Inference Tree")
 dev.off()
-p3 <- as.character(predict(m3), TestSet)
-input.response <- as.character(TestSet$DepartureDelayGroups)
+p3 <- predict(m3, TestSet)
+input.response <- (TestSet$DepartureDelayGroups)
 mean(input.response != p3)
 
 #p3 <- predict(m3, TestSet)
 #summary(p3)
 #plot(p3)
-
+########################################
+#' Model 4 (Linear Regression)
+m4 <- lm(DepDelay ~ AirlineID+OriginAirportID+DestAirportID, data = TrainSet)
+summary(m4)
 ########################################
 
 #https://analyticsdefined.com/implementing-logistic-regression-using-titanic-dataset-r/
@@ -165,3 +168,4 @@ mean(input.response != p3)
 
 # KAPPA Metric --> hurts your model if you are predicting correctly based on chance 
 # if P =! 0 in confusion matrix --> that means that is your baselinemodel (the acc is what you are trying to beat)
+# RECODE FLAG, 0 - 1 --> 
