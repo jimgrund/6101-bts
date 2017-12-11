@@ -304,7 +304,12 @@ rm(row.has.na)
 
 #####################################
 #' EDA diagrams
-colors = rainbow(length(unique(d3)))
+colors = rainbow(length(unique(TrainSet)))
+barchart(TrainSet$Origin, ylab="Name of Airport", main="Barchart of Airport Name Frequency (post-smote)", col=rainbow(3), cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
+bartable <- table(finalModel$DepDel15, finalModel$Origin)
+barplot(bartable,xlab="Name of Airport", ylab="Frequency", main="Stacked barchart of Airport Name Frequency vs DepDelay15 (post-smote)", col = c("Green4","Blue4"), legend = rownames(bartable), cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
 
 #' Histogram of DV
 # Delay Flag Frequency after SMOTE
