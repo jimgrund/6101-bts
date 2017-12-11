@@ -1,3 +1,4 @@
+
 #' ### Load Necessary Libraries
 
 #install.packages("BSDA")
@@ -53,13 +54,39 @@ d2 <- subset(data,select = c(Year,
                              Dest,          #smote this
                              DestAirportID
                              ))
-d2 <- subset(d2, Origin == "IAD" | Origin == "BWI" | Origin == "DCA")
+d2.1 <- subset(d2, Origin == "IAD" | Origin == "BWI" | Origin == "DCA")
+write.csv(d2.1,"DMV-origin_On_Time_Performance_2015-2017.csv")
+rm(data,d2,d2.1)
 
-#rm(data)
+d2.1 <- data.frame(read.csv("DMV-origin_On_Time_Performance_2015-2017.csv", header = TRUE))
 
-row.has.na <- apply(d2, 1, function(x){any(is.na(x))})
-d2 <- d2[!row.has.na,]
+row.has.na <- apply(d2.1, 1, function(x){any(is.na(x))})
+d2.1 <- d2.1[!row.has.na,]
 rm(row.has.na)
+d2.1 <- d2.1[!apply(is.na(d2.1) | d2.1 == "", 1, all),]
+gc()
+colors = rainbow(length(unique(d2)))
+barchart(d2.1$Origin, ylab="Name of Airport", main="Barchart of Airport Name Frequency (pre-smote)", col=rainbow(3), cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
+bartable <- table(d2.1$DepDel15, d2.1$Origin)
+barplot(bartable,xlab="Name of Airport", ylab="Frequency", main="Stacked barchart of Airport Name Frequency vs DepDelay15 (pre-smote)", col = c("Green4","Blue4"), legend = rownames(bartable), cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
+bartable <- table(d2.1$DepDel15, d2.1$DayOfWeek)
+barplot(bartable,xlab="Day Of Week", ylab="Frequency", main="Day Of Week vs DepDelay15 (pre-smote)", col = c("Green2","Blue2"),  cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
+bartable <- table(d2.1$DepDel15, d2.1$Month)
+barplot(bartable,xlab="Month", ylab="Frequency", main="Month vs DepDelay15 (pre-smote)", col = c("Green2","Blue2"),  cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
+bartable <- table(d2.1$DepDel15, d2.1$Carrier)
+barplot(bartable,xlab="Carrier", ylab="Frequency", main="Carrier vs DepDelay15 (pre-smote)", col = c("Green3","Blue3"),  cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
+bartable <- table(d2.1$DepDel15, d2.1$DayofMonth)
+barplot(bartable,xlab="Day of Month", ylab="Frequency", main="Day of Month vs DepDelay15 (pre-smote)", col = c("Green2","Blue2"),  cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
+
+hist(d2.1$DepDel15,xlab="Delay Flag", breaks=10, main="Histogram of Delay Flag Frequency", col = c("Gold3","Brown1"), cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+
+
 
 #Knitr global options
 library(knitr)
